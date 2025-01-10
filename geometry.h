@@ -3,11 +3,9 @@
 #include <cmath>
 #include <cstddef>
 #include <regex>
-#include <vcruntime_typeinfo.h>
 #include <vector>
 #include <cassert>
 #include <iostream>
-#include <xstring>
 
 // size_t -> unsigned long long
 // DIM -> dimension
@@ -36,11 +34,6 @@ template <size_t DIM, typename T> struct vec {
     private:
         T data_[DIM];
 };
-
-typedef vec<2,float> Vec2f;
-typedef vec<3,float> Vec3f;
-typedef vec<3, int > Vec3i;
-typedef vec<4,float> Vec4f;
 
 template <typename T> struct vec<2,T> {
     T x,y;
@@ -90,6 +83,11 @@ template <typename T> struct vec<3,T> {
         return *this;
     }
 };
+
+typedef vec<2,float> Vec2f;
+typedef vec<3,float> Vec3f;
+typedef vec<3, int > Vec3i;
+typedef vec<4,float> Vec4f;
 
 // overloaded operator for respective operations 
 

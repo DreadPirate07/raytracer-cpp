@@ -19,8 +19,7 @@ void render() {
     }
 
     std::ofstream ofs;
-    ofs.open("./out.ppm");
-    
+    ofs.open("./out.ppm",std::ofstream::out | std::ofstream::binary);
     // PPM header - P6 file format
     ofs << "P6\n" << width << " " << height << "\n255\n";
     for (size_t i=0;i<height*width;++i) {
