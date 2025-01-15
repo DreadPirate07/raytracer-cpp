@@ -5,7 +5,42 @@
 #include <vector>
 #include "geometry.h"
 
-// renders a file of 
+struct Sphere {
+    Vec3f center;
+    float radius;
+
+    Sphere(const Vec3f& vec, float rad): center(vec),radius(rad) {}
+
+    // method to check if ray intersects with sphere
+    // calculate only the distance of ray with the centre of
+    // on that basis returns true of false
+    bool ray_intersect(const Vec3f& orig, const Vec3f& dir, float& t0) const {
+        Vec3f L = center - orig;
+        float tca = L*dir;
+        float d2 = L*L - tca*tca;
+        
+        if (d2>radius*radius)
+            return false;
+
+        float thc = sqrtf(radius*radius - d2);
+        t0 = tca - thc;
+        float t1 = tca + thc;
+
+        if (t0 < 0) t0 = t1;
+        if (t0 < 0) return false;
+        return true;
+    }
+};
+
+Vec3f cast_ray(const Vec3f &orig, const Vec3f& dir, const Sphere& sphere) {
+    // store maximum float limit
+    float sphere_dist = std::numeric_limits<float>::max();
+    if (!sphere.ray_intersect(orig,dir,sphere_dist)){
+        return Vec3f(0.2,0.7,0.8);
+    }
+    return Vec3f(0.4,0.4,0.3);
+}
+
 void render() {
     const int width = 1024;
     const int height = 768;
