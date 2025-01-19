@@ -12,6 +12,14 @@ struct Material {
     Material() : diffuse_colour() {}
 };
 
+struct Light {
+    Light(const Vec3f& pos,const float& i): position(pos), intensity(i) {}
+    
+    Vec3f position;
+    float intensity;
+
+};
+
 struct Sphere {
     Vec3f center;
     float radius;
@@ -22,7 +30,8 @@ struct Sphere {
     // method to check if ray intersects with sphere
     // calculate only the distance of ray with the centre of
     // on that basis returns true of false
-    bool ray_intersect(const Vec3f& orig, const Vec3f& dir, float& t0) const {
+    bool ray_intersect(const Vec3f& orig, const Vec3f& dir, float& t0) const 
+    {
         Vec3f L = center - orig;
         float tca = L*dir;
         float d2 = L*L - tca*tca;
@@ -42,7 +51,8 @@ struct Sphere {
 
 
 bool scene_intersect(const Vec3f& orig, const Vec3f& dir,const std::vector<Sphere>& spheres,
-                      Vec3f& hit, Vec3f& N, Material& material) {
+                      Vec3f& hit, Vec3f& N, Material& material)
+{
     float spheres_dist = std::numeric_limits<float>::max();
 
     for (size_t i=0;i<spheres.size();i++) {
@@ -59,17 +69,25 @@ bool scene_intersect(const Vec3f& orig, const Vec3f& dir,const std::vector<Spher
 }
 
 
-Vec3f cast_ray(const Vec3f &orig, const Vec3f& dir, const std::vector<Sphere>& spheres) {
+Vec3f cast_ray(const Vec3f &orig, const Vec3f& dir, const std::vector<Sphere>& spheres,const std::vector<Light>& lights)
+{
     Vec3f point,N;
     Material material;
     
     if (!scene_intersect(orig, dir, spheres, point, N, material)){
         return Vec3f(0.2,0.7,0.8); // background colour (blue)
     }
-    return material.diffuse_colour; // sphere colour (grey)
+
+    float diff_light_intensity;
+    for (size_t i=0;i<lights.size();i++) {
+        Vec3f light_dir = (lights[i].position - point).normalize();
+        diff_light_intensity = lights[i].intensity*std::max(0.f,light_dir*N); // light_dir*N -> Normal dot product
+    }
+    return material.diffuse_colour*diff_light_intensity;
 }
 
-void render(const std::vector<Sphere>& spheres) {
+void render(const std::vector<Sphere>& spheres, const std::vector<Light>& lights)
+{
     const int width = 1024;
     const int height = 768;
     const int fov = M_PI/2;
@@ -81,7 +99,7 @@ void render(const std::vector<Sphere>& spheres) {
             float x = (2*(i+0.5)/(float)width -1)*tan(fov/2.)*width/(float)height;
             float y = (2*(j+0.5)/(float)height -1)*tan(fov/2.);
             Vec3f dir = Vec3f(x,y,-1).normalize();
-            framebuffer[i+j*width] = cast_ray(Vec3f(0,0,0),dir,spheres);
+            framebuffer[i+j*width] = cast_ray(Vec3f(0,0,0),dir,spheres,lights);
         }
     }
 
@@ -97,17 +115,18 @@ void render(const std::vector<Sphere>& spheres) {
     ofs.close();
 }
 
-int main() {
+int main()
+{
 
     Material ivory(Vec3f(0.4,0.4,0.3));
     Material red_rubber(Vec3f(0.3,0.1,0.1));
-
+    std::vector<Light>  lights;
     std::vector<Sphere> spheres;
     spheres.push_back(Sphere((Vec3f(-3,0,-16)),2,ivory));
     spheres.push_back(Sphere((Vec3f(-1,-1.5,-12)),2,red_rubber));
     spheres.push_back(Sphere((Vec3f(1.5,-0.5,-18)),3,ivory));
     spheres.push_back(Sphere((Vec3f(7,5,-18)),1,red_rubber));
-
-    render(spheres);
+    lights.push_back(Light(Vec3f(-20, 20,  20), 1.5));
+    render(spheres,lights);
     return 0;
 }
